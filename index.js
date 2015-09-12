@@ -22,38 +22,39 @@ mongoose.connect('mongodb://localhost/sso', function(err, res) {
 });
 
 // Routes
+
+// ID authenticate person, create hash and save person
 app.get('/', function (req, res) {
-  res.render('index.jade');
+  // Placeholders
+  var authenticated = true;
+  var idNumber = '3920505';
+
+  if (authenticated) {
+    // TODO: generate hash from ID card
+    var hash = sha1(idNumber);
+    // save the user in the DB
+    var person = new Person({
+      firstname: 'John',
+      lastname: ' Smith',
+      id: idNumber,
+      hash: hash
+    });
+    person.save();
+    // var hash = crypto.randomBytes(16).toString('hex');
+
+  } else {
+    // TODO: fail with error
+  }
+  res.render('index.jade', {token: hash});
 });
 
-app.get('/token/generate/:payload', function (req, res) {
-  // var hash = crypto.randomBytes(16).toString('hex');
-  var hash = sha1(req.params.payload);
-  res.send(hash);
-});
-
-app.get('/token/lookup/:token', function (req, res) {
-  res.send(req.params.token);
-});
-
-app.get('/token/:token', function(req, res) {
-  var token = req.body.token;
-  res.send('hello');
-});
-
-// Person model
-var Person = require('./models/person.js');
-
-app.get('/person', function(req, res) {
-  console.log("GET - /person");
-  return Person.findById(req.params.id, function(err, person) {
-    if(!err) {
-      return res.send(person);
-    } else {
-      res.statusCode = 500;
-      console.log('Internal error(%d): %s',res.statusCode,err.message);
-      return res.send({ error: 'Server error' });
-    }
+// Get person by token
+app.get('/token/:token', function (req, res) {
+  var query = Person.findOne({ 'hash': req.params.token }, function(err, person) {
+    if (person === null)
+      res.send('invalid token');
+    else
+      res.send(person);
   });
 });
 

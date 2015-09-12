@@ -20,6 +20,10 @@ var Person = new Schema({
     type    : String,
     require : true
   },
+  hash:    {
+    type    : String,
+    require : true
+  },
   modified: {
     type    : Date,
     default : Date.now
